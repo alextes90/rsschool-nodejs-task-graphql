@@ -8,7 +8,6 @@ import { PrismaClient } from '@prisma/client';
 import graphql, { GraphQLInputObjectType, GraphQLNonNull } from 'graphql';
 import { UUIDType } from './uuid.js';
 import DataLoader from 'dataloader';
-import { User } from '../index.js';
 
 const {
   GraphQLObjectType,
@@ -19,6 +18,20 @@ const {
   GraphQLBoolean,
   GraphQLEnumType,
 } = graphql;
+
+export type User = {
+  id: string;
+  name: string;
+  balance: number;
+  userSubscribedTo?: {
+    subscriberId: string;
+    authorId: string;
+  }[];
+  subscribedToUser?: {
+    subscriberId: string;
+    authorId: string;
+  }[];
+};
 
 export interface ContextInterface {
   db: PrismaClient;

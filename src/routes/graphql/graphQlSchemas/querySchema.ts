@@ -44,12 +44,14 @@ const RootQuery = new GraphQLObjectType({
           info.returnType,
         );
 
-        const fieldsKeys = Object.keys(fields);
+        const userSubscribedTo = 'userSubscribedTo' in fields;
+
+        const subscribedToUser = 'subscribedToUser' in fields;
 
         const users = await db.user.findMany({
           include: {
-            subscribedToUser: fieldsKeys.includes('subscribedToUser'),
-            userSubscribedTo: fieldsKeys.includes('userSubscribedTo'),
+            subscribedToUser,
+            userSubscribedTo,
           },
         });
 
