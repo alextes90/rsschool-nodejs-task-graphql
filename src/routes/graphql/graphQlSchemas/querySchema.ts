@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { GraphQLObjectType, GraphQLList, GraphQLNonNull } from 'graphql';
@@ -10,6 +11,11 @@ import {
   UserType,
 } from '../types/general.js';
 import { UUIDType } from '../types/uuid.js';
+import {
+  ResolveTree,
+  parseResolveInfo,
+  simplifyParsedResolveInfoFragmentWithType,
+} from 'graphql-parse-resolve-info';
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
@@ -28,8 +34,28 @@ const RootQuery = new GraphQLObjectType({
     },
     users: {
       type: new GraphQLList(UserType),
-      resolve: async (_parent, _args, { db }: ContextInterface) => {
-        return await db.user.findMany();
+      resolve: async (_parent, _args, ctx: ContextInterface, info) => {
+        // return await db.user.findMany();
+        const { db } = ctx;
+        const parsedInfo = parseResolveInfo(info) as ResolveTree;
+
+        const { fields } = simplifyParsedResolveInfoFragmentWithType(
+          parsedInfo,
+          info.returnType,
+        );
+
+        const fieldsKeys = Object.keys(fields);
+
+        const users = await db.user.findMany({
+          include: {
+            subscribedToUser: fieldsKeys.includes('subscribedToUser'),
+            userSubscribedTo: fieldsKeys.includes('userSubscribedTo'),
+          },
+        });
+
+        ctx.dataUsers = users;
+
+        return users;
       },
     },
     profiles: {
@@ -66,7 +92,7 @@ const RootQuery = new GraphQLObjectType({
       type: UserType,
       args: { id: { type: new GraphQLNonNull(UUIDType) } },
       resolve: async (_, args, { db }: ContextInterface) => {
-        const userType = await db.user.findFirst({
+        const userType = await db.user.findUnique({
           where: {
             id: args.id,
           },
