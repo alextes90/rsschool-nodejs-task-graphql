@@ -55,7 +55,12 @@ export const UserType: graphql.GraphQLObjectType<any, any> = new GraphQLObjectTy
     balance: { type: GraphQLFloat },
     profile: {
       type: ProfileType,
-      resolve: async (parent, _args, { db, dataLoader }: ContextInterface, info) => {
+      resolve: async (
+        parent: User,
+        _args,
+        { db, dataLoader }: ContextInterface,
+        info,
+      ) => {
         // return await db.profile.findUnique({ where: { userId: parent.id } });
         let dl = dataLoader.get(info.fieldNodes);
         if (!dl) {
@@ -71,7 +76,12 @@ export const UserType: graphql.GraphQLObjectType<any, any> = new GraphQLObjectTy
     },
     posts: {
       type: new GraphQLList(PostType),
-      resolve: async (parent, _args, { db, dataLoader }: ContextInterface, info) => {
+      resolve: async (
+        parent: User,
+        _args,
+        { db, dataLoader }: ContextInterface,
+        info,
+      ) => {
         // return await db.post.findMany({ where: { authorId: parent.id } });
         let dl = dataLoader.get(info.fieldNodes);
         if (!dl) {
